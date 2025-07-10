@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Supabase Auth Test</title>
+</head>
+<body>
+  <h2>Sign Up</h2>
+  <input id="signup-email" type="email" placeholder="Email" />
+  <input id="signup-password" type="password" placeholder="Password" />
+  <button id="signup-btn">Sign Up</button>
+
+  <h2>Log In</h2>
+  <input id="login-email" type="email" placeholder="Email" />
+  <input id="login-password" type="password" placeholder="Password" />
+  <button id="login-btn">Log In</button>
+
+  <h2>Hoặc đăng nhập bằng</h2>
+  <button id="google-login-btn">Đăng nhập bằng Google</button>
+
+  <h2>Status</h2>
+  <pre id="status">Chưa đăng nhập</pre>
+
+  <!-- Supabase SDK -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.3/+esm'
+
+    // ⚠️ THAY BẰNG THÔNG TIN PROJECT CỦA BẠN
+    const supabaseUrl = 'https://.supabase.co'
+    const supabaseAnonKey = '..-'
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+    async function signup() {
+      const email = document.getElementById('signup-email').value
+      const password = document.getElementById('signup-password').value
+
+      const { error } = await supabase.auth.signUp({ email, password })
+      document.getElementById('status').textContent = error
+        ? '❌ ' + error.message
+        : '✅ Đăng ký thành công! (Kiểm tra email nếu cần xác thực)'
+    }
+
+    async function login() {
+      const email = document.getElementById('login-email').value
+      const password = document.getElementById('login-password').value
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      document.getElementById('status').textContent = error
+        ? '❌ Lỗi đăng nhập: ' + error.message
+        : '✅ Đăng nhập thành công. User ID: ' + data.user.id
+    }
+
+    // Gán sự kiện sau khi DOM load
+    document.getElementById('signup-btn').addEventListener('click', signup)
+    document.getElementById('login-btn').addEventListener('click', login)
+    document.getElementById('google-login-btn').addEventListener('click', async () => {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin // hoặc URL cụ thể sau khi đăng nhập
+        }
+      })
+
+      if (error) {
+        document.getElementById('status').textContent = '❌ Lỗi OAuth: ' + error.message
+      }
+    })
+
+  </script>
+</body>
+</html>
